@@ -1,13 +1,21 @@
 __author__ = 'Taylor'
 
-import os.path
+# The main start file for jenkitay.pythonanywhere.com
+# Use this instead of run.py on hosted site. Use run.py for local development.
+
+from flask import Flask
+# from flask.ext.bcrypt import Bcrypt
+# import os.path
 from eve import Eve
-# import my_auth
 from flask.ext.bootstrap import Bootstrap
 from eve_docs import eve_docs
 import bcrypt
 from eve.auth import BasicAuth      # Implements basic authentication
 
+
+# Reference: http://stackoverflow.com/questions/27029842/in-eve-how-can-you-store-the-users-password-securely
+# Reference: http://python-eve.org/tutorials/account_management.html#basic-vs-token-final-considerations
+# Reference: http://code.tutsplus.com/tutorials/building-rest-apis-using-eve--cms-22961
 class BCryptAuth(BasicAuth):
      def check_auth(self, username, password, allowed_roles, resource, method):
          if resource == 'accounts' and method == 'POST':
@@ -26,22 +34,18 @@ class BCryptAuth(BasicAuth):
 
 def create_user(documents):
     for document in documents:
-        # document['username'] = document['username'].encode('utf-8')
         document['salt'] = bcrypt.gensalt(4)
         password = document['password'].encode('utf-8')
         document['password'] = bcrypt.hashpw(password, document['salt'])
 
-DEPLOYED = True
 
-if os.path.exists('deployed_settings.py') and DEPLOYED:
-    app = Eve(auth=BCryptAuth, settings = 'deployed_settings.py')
-    # app = Eve(settings = 'deployed_settings.py')
-else:
-    app = Eve(settings = 'settings.py')
-
+app = Flask(__name__)
+app = Eve(auth=BCryptAuth, settings = '/home/jenkitay/mysite/deployed_settings.py')
 app.on_insert_accounts += create_user
 Bootstrap(app)
 app.register_blueprint(eve_docs, url_prefix='/docs')
 
-if __name__ == '__main__':
-    app.run()
+@app.route('/')
+def index():
+    # return 'Hello World'
+    return app

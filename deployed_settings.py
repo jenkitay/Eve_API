@@ -1,8 +1,11 @@
 __author__ = 'Taylor'
 import os
 
+# Reference: http://python-eve.org/config.html
+# Reference: http://python-eve.org/quickstart.html
+
 # We want to run our API seamlessly, both locally and on the cloud, so:
-LOCAL = False
+LOCAL = True
 if os.environ.get('PORT'):
     # We're hosted on Heroku! Using the mongolab.com sandbox as our backend.
     MONGO_HOST = 'ds061228.mongolab.com'
@@ -12,7 +15,7 @@ if os.environ.get('PORT'):
     MONGO_DBNAME = 'practice'
 elif LOCAL:
     # We are running on a local machine, so just use the local mongod instance.
-    print("Running local DB")
+    # print("Running local DB")
     # Note that MONGO_HOST and MONGO_PORT could very well be left
     # out as they already default to a bare bones local 'mongod' instance.
     MONGO_HOST = 'localhost'
@@ -22,13 +25,16 @@ elif LOCAL:
     MONGO_DBNAME = 'practice'
 else:
     # We're hosted on a cloud server! Using the mongolab.com sandbox as our backend.
-    print("running on mongolab")
+    # print("running on mongolab")
     MONGO_HOST = 'ds061228.mongolab.com'
     MONGO_PORT = 61228
     MONGO_USERNAME = 'DB_USER'
     MONGO_PASSWORD = 'DB_PASSWORD'
     MONGO_DBNAME = 'practice'
+    # MONGO_URI "mongodb://DB_USER:DB_PASSWORD@ds061228.mongolab.com:61228/practice"
 
+# Name of the field used to store the owner of each document
+AUTH_FIELD = 'user_id'
 
 # Enable reads (GET), inserts (POST) and DELETE for resources/collections
 # (if you omit this line, the API will default to ['GET'] and provide
@@ -38,12 +44,13 @@ RESOURCE_METHODS = ['GET', 'POST', 'DELETE']
 # Enable reads (GET), edits (PATCH), replacements (PUT) and deletes of
 # individual items  (defaults to read-only item access).
 ITEM_METHODS = ['GET', 'PATCH', 'PUT', 'DELETE']
-IF_MATCH = False # When set to false, older versions may potentially replace newer versions
+IF_MATCH = False  # When set to false, older versions may potentially replace newer versions
 
+XML = False  # disable xml output
 
 # Schemas for data objects are defined here:
 classes = {
-    'item_title': 'class', # 'title' tag used in item links.
+    'item_title': 'class',  # 'title' tag used in item links.
     'additional_lookup': {
         'url': 'regex("[\w]+")',
         'field': 'subject',
@@ -58,7 +65,7 @@ classes = {
             'minlength': 1,
             'maxlength': 32,
             'required': True,
-            'unique': True, # name is an API entry-point so it must be unique.
+            'unique': True,  # name is an API entry-point so it must be unique.
         },
         'teachers': {
             'type': 'list',
@@ -170,11 +177,11 @@ logs = {
     'resource_methods': ['GET', 'POST'],
     'schema': {
         'student_id': {
-            'type': 'objectid',
+            'type': 'string',
             'required': True,
             'data_relation': {
                 'resource': 'people',
-                'field': '_id',
+                'field': 'id_number',
                 # make the student embeddable with ?embedded={"student":1}
                 'embeddable': True,
             },
@@ -199,13 +206,13 @@ logs = {
             'type': 'list',
             'schema': {
                 # 'session': {
-                    'type': 'objectid',
-                    # 'required': True,
-                    'data_relation': {
-                        'resource': 'sessions',
-                        # make the student embeddable with ?embedded={"student":1}
-                        'embeddable': True
-                    },
+                'type': 'objectid',
+                # 'required': True,
+                'data_relation': {
+                    'resource': 'sessions',
+                    # make the student embeddable with ?embedded={"student":1}
+                    'embeddable': True
+                },
                 # },
             },
         },
@@ -224,11 +231,42 @@ sessions = {
             'type': 'datetime',
         },
         'duration': {'type': 'string',
-            'regex': '^\d\d:\d\d:\d\d$'
-        },
+                     'regex': '^\d\d:\d\d:\d\d$'
+                     },
         'comment': {
             'type': 'string',
             'maxlength': 1024,
+        },
+    },
+}
+
+accounts = {
+    # the standard account entry point is defined as '/accounts/<ObjectId>'.
+    # an additional read-only entry point is accessible at '/accounts/<username>'.
+    'additional_lookup': {
+        'url': 'regex("[\w]+")',
+        'field': 'username',
+    },
+    # most global settings can be overridden at resource level
+    'resource_methods': ['GET', 'POST'],
+
+    # disable endpoint caching to prevent apps from caching account data
+    'cache_control': '',
+    'cache_expires': 0,
+
+    # schema for the accounts endpoint
+    'schema': {
+        'username': {
+            'type': 'string',
+            'required': True,
+            'unique': True,
+        },
+        'password': {
+            'type': 'string',
+            'required': True,
+        },
+        'salt': {
+            'type': 'string',
         },
     },
 }
@@ -240,4 +278,5 @@ DOMAIN = {
     'people': people,
     'logs': logs,
     'sessions': sessions,
-    }
+    'accounts': accounts,
+}

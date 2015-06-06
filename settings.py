@@ -2,7 +2,7 @@ __author__ = 'Taylor'
 import os
 
 # We want to run our API seamlessly, both locally and on the cloud, so:
-LOCAL = True
+LOCAL = False
 if os.environ.get('PORT'):
     # We're hosted on Heroku! Using the mongolab.com sandbox as our backend.
     MONGO_HOST = 'ds061228.mongolab.com'
@@ -12,7 +12,7 @@ if os.environ.get('PORT'):
     MONGO_DBNAME = 'practice'
 elif LOCAL:
     # We are running on a local machine, so just use the local mongod instance.
-    print("Running local DB")
+    #print("Running local DB")
     # Note that MONGO_HOST and MONGO_PORT could very well be left
     # out as they already default to a bare bones local 'mongod' instance.
     MONGO_HOST = 'localhost'
@@ -22,7 +22,7 @@ elif LOCAL:
     MONGO_DBNAME = 'practice'
 else:
     # We're hosted on a cloud server! Using the mongolab.com sandbox as our backend.
-    print("running on mongolab")
+    #print("running on mongolab")
     MONGO_HOST = 'ds061228.mongolab.com'
     MONGO_PORT = 61228
     MONGO_USERNAME = 'DB_USER'
